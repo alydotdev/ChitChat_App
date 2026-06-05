@@ -1,13 +1,29 @@
 import React from 'react'
 import { useState } from 'react'
-import {Camera, User , Mail} from 'lucide-react'
+import {Camera, User , Mail, Hash, Copy, Check} from 'lucide-react'
 import {useAuthStore} from '../store/useAuthStore'
+import { validateImageFile } from '../lib/utils'
+import toast from 'react-hot-toast'
 const ProfilePage = () => {
   const  {updateProfile , isUpdatingProfile ,authUser} = useAuthStore();
   const [selectedImg, setSelectedImg] = useState(null);
+  const [copied, setCopied] = useState(false);
+
+  const copyUserId = () => {
+    if (!authUser?.userId) return;
+    navigator.clipboard.writeText(String(authUser.userId));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
   const handleImageUpload = async(e)=>{
     const file =e.target.files[0];
     if(!file) return;
+    const { valid, error } = validateImageFile(file);
+    if (!valid) {
+      toast.error(error);
+      e.target.value = "";
+      return;
+    }
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = async()=>{
@@ -73,6 +89,27 @@ const ProfilePage = () => {
                 Email Address
               </div>
               <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.email}</p>
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="text-sm text-zinc-400 flex items-center gap-2">
+                <Hash className="w-4 h-4" />
+                Unique ID
+              </div>
+              <div className="flex items-center gap-2">
+                <p className="flex-1 px-4 py-2.5 bg-base-200 rounded-lg border font-mono">
+                  {authUser?.userId || "—"}
+                </p>
+                <button
+                  onClick={copyUserId}
+                  className="btn btn-ghost btn-square"
+                  title="Copy ID"
+                  disabled={!authUser?.userId}
+                >
+                  {copied ? <Check className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+              <p className="text-xs text-zinc-500">Share this ID so others can add you as a friend</p>
             </div>
           </div>
           <div className="mt-6 bg-base-300 rounded-xl p-6">

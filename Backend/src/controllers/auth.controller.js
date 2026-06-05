@@ -26,6 +26,7 @@ export const signup = async(req , res)=>{
       await newUser.save();
       res.status(201).json({
         _id:newUser._id,
+        userId: newUser.userId,
         fullName: newUser.fullName,
         email: newUser.email,
         profilePic: newUser.profilePic,
@@ -54,8 +55,15 @@ export const loginin = async(req , res)=>{
     }
 
     generateToken(user._id,res)
+    if (!user.userId) {
+      const lastUser = await User.findOne().sort({ userId: -1 }).select("userId");
+      user.userId = lastUser?.userId ? lastUser.userId + 1 : 1000001;
+      await user.save();
+    }
+
     res.status(201).json({
         _id: user._id,
+        userId: user.userId,
         fullName: user.fullName,
         email: user.email,
         profilePic: user.profilePic,
@@ -105,9 +113,15 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
-export const checkAuth = (req , res ) =>{
+export const checkAuth = async (req , res ) =>{
   try {
-    res.status(200).json(req.user);
+    let user = req.user;
+    if (!user.userId) {
+      const lastUser = await User.findOne().sort({ userId: -1 }).select("userId");
+      user.userId = lastUser?.userId ? lastUser.userId + 1 : 1000001;
+      await user.save();
+    }
+    res.status(200).json(user);
   } catch (error) {
     console.log("Error in checkAuth controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });

@@ -4,6 +4,7 @@ import authRoutes from "./routers/auth.route.js";
 import connectDb from "./lib/db.js";
 import cookieParser from 'cookie-parser'
 import messageRoutes from "./routers/message.route.js";
+import friendRoutes from "./routers/friend.route.js";
 import cors from 'cors'
 import {app, server } from './lib/socket.js'
 import path from 'path'
@@ -14,11 +15,12 @@ app.use(cors({
 ))
 dotenv.config();
 const __dirname = path.resolve();
-app.use(express.json({limit: "10mb"}));
+app.use(express.json({limit: "20mb"}));
 app.use(cookieParser())
 app.use("/api/auth", authRoutes)
 app.use("/api/messages", messageRoutes)
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use("/api/friends", friendRoutes)
+app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 if(process.env.NODE_ENV==="production"){
     app.use(express.static(path.join(__dirname, "../Frontend/dist")))
      app.get("*", (req, res) => {

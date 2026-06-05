@@ -18,7 +18,17 @@ const messageSchema = new mongoose.Schema({
     image: {
       type: String,
     },
+    status: {
+      type: String,
+      enum: ["sent", "delivered", "read"],
+      default: "sent",
+    },
+    read: {
+      type: Boolean,
+      default: false,
+    },
 },{ timestamps: true }, )
-const  Message = mongoose.model("Message " , messageSchema);
+
+const Message = mongoose.model("Message " , messageSchema);
 
 export default Message;

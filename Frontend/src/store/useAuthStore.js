@@ -3,6 +3,9 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios.js";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
+import { useChatStore } from "./useChatStore.js";
+import { useFriendStore } from "./useFriendStore.js";
+import { normalizeId } from "../lib/utils.js";
 
 const BASE_URL = import.meta.env.MODE === "development" ? "http://localhost:5001" : "/";
 
@@ -85,22 +88,76 @@ export const useAuthStore = create((set, get) => ({
 
   connectSocket: () => {
     const { authUser } = get();
-    if (!authUser || get().socket?.connected) return;
+    if (!authUser) return;
 
-    const socket = io(BASE_URL, {
-      query: {
-        userId: authUser._id,
-      },
-    });
+    const existingSocket = get().socket;
+    if (existingSocket?.connected) return;
+
+    const socket =
+      existingSocket ||
+      io(BASE_URL, {
+        query: { userId: authUser._id },
+        withCredentials: true,
+        transports: ["websocket", "polling"],
+      });
+
+    if (!existingSocket) {
+      socket.on("getOnlineUsers", (userIds) => {
+        set({ onlineUsers: userIds });
+      });
+
+      socket.on("newMessage", (newMessage) => {
+        const authUserId = get().authUser?._id;
+        if (!authUserId) return;
+
+        const isReceiver = normalizeId(newMessage.receiverId) === normalizeId(authUserId);
+        if (isReceiver && (!newMessage.status || newMessage.status === "sent")) {
+          socket.emit("messageDelivered", { messageId: newMessage._id });
+        }
+
+        useChatStore.getState().handleIncomingMessage(newMessage, authUserId);
+      });
+
+      socket.on("messageStatusUpdate", ({ messageId, status }) => {
+        useChatStore.getState().updateMessageStatus(messageId, status);
+      });
+
+      socket.on("newFriendRequest", () => {
+        useFriendStore.getState().getPendingRequests();
+      });
+
+      socket.on("friendRequestAccepted", () => {
+        useChatStore.getState().getUsers();
+        useFriendStore.getState().getPendingRequests();
+      });
+
+      socket.on("userTyping", ({ senderId }) => {
+        useChatStore.getState().setUserTyping(senderId, true);
+      });
+
+      socket.on("userStopTyping", ({ senderId }) => {
+        useChatStore.getState().setUserTyping(senderId, false);
+      });
+
+      set({ socket });
+    }
+
     socket.connect();
+  },
 
-    set({ socket: socket });
+  emitTyping: (receiverId) => {
+    get().socket?.emit("typing", { receiverId });
+  },
 
-    socket.on("getOnlineUsers", (userIds) => {
-      set({ onlineUsers: userIds });
-    });
+  emitStopTyping: (receiverId) => {
+    get().socket?.emit("stopTyping", { receiverId });
   },
   disconnectSocket: () => {
-    if (get().socket?.connected) get().socket.disconnect();
+    const socket = get().socket;
+    if (socket) {
+      socket.disconnect();
+      socket.removeAllListeners();
+      set({ socket: null, onlineUsers: [] });
+    }
   },
 }));

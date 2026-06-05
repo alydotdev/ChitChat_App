@@ -1,31 +1,23 @@
 import { useChatStore } from "../store/useChatStore";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import ChatHeader from "./ChatHeader";
 import MessageInput from "./MessageInput";
 import MessageSkeleton from "./skeletons/MessageSkeleton";
+import ImageLightbox from "./ImageLightbox";
 import { useAuthStore } from "../store/useAuthStore";
-import { formatMessageTime } from "../lib/utils";
+import { formatMessageTime, normalizeId } from "../lib/utils";
+import MessageStatus from "./MessageStatus";
 
 const ChatContainer = () => {
-  const {
-    messages,
-    getMessages,
-    isMessagesLoading,
-    selectedUser,
-    subscribeToMessages,
-    unsubscribeFromMessages,
-  } = useChatStore();
-  const { authUser } = useAuthStore();
+  const { messages, getMessages, isMessagesLoading, selectedUser } = useChatStore();
+  const { authUser, socket } = useAuthStore();
   const messageEndRef = useRef(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
 
   useEffect(() => {
-    getMessages(selectedUser._id);
-
-    subscribeToMessages();
-
-    return () => unsubscribeFromMessages();
-  }, [selectedUser._id, getMessages, subscribeToMessages, unsubscribeFromMessages]);
+    getMessages(selectedUser._id, authUser?._id, socket);
+  }, [selectedUser._id, getMessages, authUser?._id, socket]);
 
   useEffect(() => {
     if (messageEndRef.current && messages) {
@@ -48,17 +40,17 @@ const ChatContainer = () => {
       <ChatHeader />
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message) => (
+        {messages.map((message, index) => (
           <div
             key={message._id}
-            className={`chat ${message.senderId === authUser._id ? "chat-end" : "chat-start"}`}
-            ref={messageEndRef}
+            className={`chat ${normalizeId(message.senderId) === normalizeId(authUser._id) ? "chat-end" : "chat-start"}`}
+            ref={index === messages.length - 1 ? messageEndRef : null}
           >
             <div className=" chat-image avatar">
               <div className="size-10 rounded-full border">
                 <img
                   src={
-                    message.senderId === authUser._id
+                    normalizeId(message.senderId) === normalizeId(authUser._id)
                       ? authUser.profilePic || "/avatar.png"
                       : selectedUser.profilePic || "/avatar.png"
                   }
@@ -66,26 +58,37 @@ const ChatContainer = () => {
                 />
               </div>
             </div>
-            <div className="chat-header mb-1">
-              <time className="text-xs opacity-50 ml-1">
+            <div className="chat-header mb-1 flex items-center gap-1">
+              <time className="text-xs opacity-50">
                 {formatMessageTime(message.createdAt)}
               </time>
+              {normalizeId(message.senderId) === normalizeId(authUser._id) && (
+                <MessageStatus status={message.status} />
+              )}
             </div>
-            <div className="chat-bubble flex flex-col">
+            <div className="chat-bubble flex flex-col max-w-[85vw] sm:max-w-md break-words">
               {message.image && (
                 <img
                   src={message.image}
                   alt="Attachment"
-                  className="sm:max-w-[200px] rounded-md mb-2"
+                  className="max-w-full sm:max-w-[200px] rounded-md mb-2 cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setLightboxImage(message.image)}
                 />
               )}
-              {message.text && <p>{message.text}</p>}
+              {message.text && <p className="break-words">{message.text}</p>}
+              {normalizeId(message.senderId) === normalizeId(authUser._id) && message.image && !message.text && (
+                <div className="flex justify-end mt-1">
+                  <MessageStatus status={message.status} />
+                </div>
+              )}
             </div>
           </div>
         ))}
       </div>
 
       <MessageInput />
+
+      <ImageLightbox src={lightboxImage} onClose={() => setLightboxImage(null)} />
     </div>
   );
 };
