@@ -7,7 +7,7 @@ import { useChatStore } from "./useChatStore.js";
 import { useFriendStore } from "./useFriendStore.js";
 import { normalizeId } from "../lib/utils.js";
 
-const BASE_URL = import.meta.env.MODE === "development" ? "http://16.170.218.202:5000/" : "http://16.170.218.202:5000/";
+const BASE_URL = import.meta.env.MODE === "development" ? "http://16.170.218.202:5000/" : import.meta.env.SOCKET_API_URL;
 
 export const useAuthStore = create((set, get) => ({
   authUser: null,
