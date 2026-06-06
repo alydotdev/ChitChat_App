@@ -40,7 +40,7 @@ const Sidebar = () => {
   if (isUsersLoading && activeTab === "contacts") return <SidebarSkeleton />;
 
   return (
-    <aside className="h-full w-full md:w-72 border-r border-base-300 flex flex-col transition-all duration-200">
+    <aside className="h-full w-full md:w-80 border-r border-base-300 flex flex-col transition-all duration-200">
       <div className="border-b border-base-300 w-full">
         <div className="flex">
           {tabs.map((tab) => (

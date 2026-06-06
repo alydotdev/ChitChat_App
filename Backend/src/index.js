@@ -9,8 +9,23 @@ import cors from 'cors'
 import {app, server } from './lib/socket.js'
 import path from 'path'
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: function(origin, callback) {
+        const allowedOrigins = [
+            "http://localhost:5173",
+            "http://localhost",
+            "http://127.0.0.1:5173"
+        ];
+        
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
 }
 ))
 dotenv.config();
