@@ -13,7 +13,9 @@ app.use(cors({
         const allowedOrigins = [
             "http://localhost:5173",
             "http://localhost",
-            "http://127.0.0.1:5173"
+            "http://127.0.0.1:5173",
+            "http://16.170.218.202:5173",
+            "https://chit-chat-app-five.vercel.app", 
         ];
         
         // Allow requests with no origin (like mobile apps or curl requests)
