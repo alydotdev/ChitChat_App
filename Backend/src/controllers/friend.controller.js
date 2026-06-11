@@ -192,3 +192,44 @@ export const getFriends = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const unfriendUser = async (req, res) => {
+  try {
+    const { friendId } = req.params;
+    const myId = req.user._id;
+
+    if (friendId === myId.toString()) {
+      return res.status(400).json({ message: "Invalid operation" });
+    }
+
+    const isFriend = req.user.friends.some((id) => id.toString() === friendId);
+    if (!isFriend) {
+      return res.status(400).json({ message: "You are not friends with this user" });
+    }
+
+    await User.findByIdAndUpdate(myId, { $pull: { friends: friendId } });
+    await User.findByIdAndUpdate(friendId, { $pull: { friends: myId } });
+
+    await FriendRequest.deleteMany({
+      $or: [
+        { sender: myId, receiver: friendId },
+        { sender: friendId, receiver: myId },
+      ],
+    });
+
+    const mySocketId = getReceiverSocketId(myId);
+    const friendSocketId = getReceiverSocketId(friendId);
+
+    if (friendSocketId) {
+      io.to(friendSocketId).emit("friendRemoved", { userId: myId.toString() });
+    }
+    if (mySocketId) {
+      io.to(mySocketId).emit("friendRemoved", { userId: friendId });
+    }
+
+    res.status(200).json({ message: "Friend removed successfully" });
+  } catch (error) {
+    console.log("Error in unfriendUser:", error.message);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

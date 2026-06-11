@@ -7,6 +7,7 @@ import {
   acceptFriendRequest,
   rejectFriendRequest,
   getFriends,
+  unfriendUser,
 } from "../controllers/friend.controller.js";
 
 const router = express.Router();
@@ -17,5 +18,6 @@ router.get("/requests", protectRoute, getPendingRequests);
 router.post("/accept/:requestId", protectRoute, acceptFriendRequest);
 router.post("/reject/:requestId", protectRoute, rejectFriendRequest);
 router.get("/", protectRoute, getFriends);
+router.delete("/:friendId", protectRoute, unfriendUser);
 
 export default router;

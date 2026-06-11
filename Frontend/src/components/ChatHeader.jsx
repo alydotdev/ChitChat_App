@@ -2,6 +2,7 @@ import { ArrowLeft, X } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import { isUserOnline, normalizeId } from "../lib/utils";
+import ChatOptionsMenu from "./ChatOptionsMenu";
 
 const ChatHeader = () => {
   const { selectedUser, setSelectedUser, typingUsers } = useChatStore();
@@ -39,13 +40,20 @@ const ChatHeader = () => {
           </div>
         </div>
 
-        <button
-          onClick={() => setSelectedUser(null)}
-          className="btn btn-ghost btn-sm btn-circle hidden md:flex"
-          aria-label="Close chat"
-        >
-          <X size={20} />
-        </button>
+        <div className="flex items-center gap-1">
+          <ChatOptionsMenu
+            user={selectedUser}
+            onCloseChat={() => setSelectedUser(null)}
+          />
+
+          <button
+            onClick={() => setSelectedUser(null)}
+            className="btn btn-ghost btn-sm btn-circle hidden md:flex"
+            aria-label="Close chat"
+          >
+            <X size={20} />
+          </button>
+        </div>
       </div>
     </div>
   );

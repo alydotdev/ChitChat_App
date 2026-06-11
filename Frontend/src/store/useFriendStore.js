@@ -11,6 +11,7 @@ export const useFriendStore = create((set, get) => ({
   isSearching: false,
   isRequestsLoading: false,
   isSendingRequest: false,
+  isUnfriending: false,
 
   getPendingRequests: async () => {
     set({ isRequestsLoading: true });
@@ -77,6 +78,29 @@ export const useFriendStore = create((set, get) => ({
       toast.success("Friend request rejected");
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to reject request");
+    }
+  },
+
+  unfriendUser: async (friendId) => {
+    set({ isUnfriending: true });
+    try {
+      await axiosInstance.delete(`/friends/${friendId}`);
+      const chatStore = useChatStore.getState();
+      const removedId = friendId?.toString?.() ?? friendId;
+
+      chatStore.setSelectedUser(null);
+      useChatStore.setState({
+        users: chatStore.users.filter((user) => user._id?.toString() !== removedId),
+        messages: [],
+      });
+
+      toast.success("Friend removed");
+      return true;
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to remove friend");
+      return false;
+    } finally {
+      set({ isUnfriending: false });
     }
   },
 

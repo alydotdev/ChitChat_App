@@ -133,6 +133,20 @@ export const useAuthStore = create((set, get) => ({
         useFriendStore.getState().getPendingRequests();
       });
 
+      socket.on("friendRemoved", ({ userId }) => {
+        const chatStore = useChatStore.getState();
+        const removedId = userId?.toString?.() ?? userId;
+
+        if (chatStore.selectedUser?._id?.toString() === removedId) {
+          chatStore.setSelectedUser(null);
+          useChatStore.setState({ messages: [] });
+        }
+
+        useChatStore.setState({
+          users: chatStore.users.filter((user) => user._id?.toString() !== removedId),
+        });
+      });
+
       socket.on("userTyping", ({ senderId }) => {
         useChatStore.getState().setUserTyping(senderId, true);
       });
