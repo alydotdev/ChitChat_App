@@ -11,7 +11,7 @@ const ChatHeader = () => {
   const isOnline = isUserOnline(selectedUser._id, onlineUsers);
 
   return (
-    <div className="p-2.5 border-b border-base-300">
+    <div className="shrink-0 p-2.5 pt-[max(0.625rem,env(safe-area-inset-top))] border-b border-base-300 bg-base-100">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2 sm:gap-3">
           <button

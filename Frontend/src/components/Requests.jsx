@@ -31,7 +31,7 @@ const Requests = () => {
   }
 
   return (
-    <div className="overflow-y-auto w-full py-2">
+    <div className="chat-messages overflow-y-auto w-full py-2 flex-1 min-h-0">
       {pendingRequests.map((request) => (
         <div
           key={request._id}

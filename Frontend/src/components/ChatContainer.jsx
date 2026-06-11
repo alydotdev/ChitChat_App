@@ -8,43 +8,68 @@ import ImageLightbox from "./ImageLightbox";
 import { useAuthStore } from "../store/useAuthStore";
 import { formatMessageTime, normalizeId } from "../lib/utils";
 import MessageStatus from "./MessageStatus";
+import { useVisualViewport } from "../hooks/useVisualViewport";
 
 const ChatContainer = () => {
   const { messages, getMessages, isMessagesLoading, selectedUser } = useChatStore();
   const { authUser, socket } = useAuthStore();
-  const messageEndRef = useRef(null);
+  const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const [lightboxImage, setLightboxImage] = useState(null);
+  const { height: viewportHeight, offsetTop: viewportOffsetTop } = useVisualViewport();
+  const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
 
   useEffect(() => {
     getMessages(selectedUser._id, authUser?._id, socket);
   }, [selectedUser._id, getMessages, authUser?._id, socket]);
 
+  const scrollToBottom = (behavior = "smooth") => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior });
+  };
+
   useEffect(() => {
-    if (messageEndRef.current && messages) {
-      messageEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+    if (messages?.length) scrollToBottom();
   }, [messages]);
+
+  const mobileStyle =
+    isMobile
+      ? {
+          height: viewportHeight,
+          transform: viewportOffsetTop ? `translateY(${viewportOffsetTop}px)` : undefined,
+        }
+      : undefined;
 
   if (isMessagesLoading) {
     return (
-      <div className="flex-1 flex flex-col overflow-auto">
+      <div
+        className="flex-1 flex flex-col min-h-0 h-full w-full overflow-hidden bg-base-100"
+        style={mobileStyle}
+      >
         <ChatHeader />
         <MessageSkeleton />
-        <MessageInput />
+        <MessageInput onInputFocus={() => scrollToBottom("auto")} />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-auto">
+    <div
+      className="flex-1 flex flex-col min-h-0 h-full w-full overflow-hidden bg-base-100"
+      style={mobileStyle}
+    >
       <ChatHeader />
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div
+        ref={messagesContainerRef}
+        className="chat-messages flex-1 min-h-0 overflow-y-auto p-4 space-y-4"
+      >
         {messages.map((message, index) => (
           <div
             key={message._id}
             className={`chat ${normalizeId(message.senderId) === normalizeId(authUser._id) ? "chat-end" : "chat-start"}`}
-            ref={index === messages.length - 1 ? messageEndRef : null}
+            ref={index === messages.length - 1 ? messagesEndRef : null}
           >
             <div className=" chat-image avatar">
               <div className="size-10 rounded-full border">
@@ -86,7 +111,7 @@ const ChatContainer = () => {
         ))}
       </div>
 
-      <MessageInput />
+      <MessageInput onInputFocus={() => scrollToBottom("auto")} />
 
       <ImageLightbox src={lightboxImage} onClose={() => setLightboxImage(null)} />
     </div>

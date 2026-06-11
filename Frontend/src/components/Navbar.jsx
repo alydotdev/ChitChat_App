@@ -1,14 +1,18 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/useAuthStore";
+import { useChatStore } from "../store/useChatStore";
 import { LogOut, MessageSquare, Settings, User } from "lucide-react";
 
 const Navbar = () => {
   const { logout, authUser } = useAuthStore();
+  const { selectedUser } = useChatStore();
+  const location = useLocation();
+  const hideOnMobileChat = location.pathname === "/" && selectedUser;
 
   return (
     <header
-      className="bg-base-100 border-b border-base-300 fixed w-full top-0 z-40 
-    backdrop-blur-lg"
+      className={`bg-base-100 border-b border-base-300 shrink-0 w-full z-40 backdrop-blur-lg
+        ${hideOnMobileChat ? "hidden md:block" : ""}`}
     >
       <div className="container mx-auto px-4 h-16">
         <div className="flex items-center justify-between h-full">

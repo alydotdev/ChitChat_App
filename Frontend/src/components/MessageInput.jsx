@@ -9,7 +9,7 @@ import { useThemeStore } from "../store/useThemeStore";
 
 const DARK_THEMES = ["dark", "night", "dracula", "black", "dim", "sunset", "synthwave", "cyberpunk", "halloween", "forest", "coffee"];
 
-const MessageInput = () => {
+const MessageInput = ({ onInputFocus }) => {
   const [text, setInputText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -95,7 +95,7 @@ const MessageInput = () => {
   };
 
   return (
-    <div className="p-3 sm:p-4 w-full relative">
+    <div className="shrink-0 p-3 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] w-full relative border-t border-base-300 bg-base-100">
       {imagePreview && (
         <div className="mb-3 flex items-center gap-2">
           <div className="relative">
@@ -143,14 +143,17 @@ const MessageInput = () => {
           <input
             ref={inputRef}
             type="text"
-            className="w-full input input-bordered rounded-lg input-sm sm:input-md"
+            className="w-full input input-bordered rounded-lg text-base sm:input-md"
             placeholder="Type a message..."
             value={text}
             onChange={(e) => {
               setInputText(e.target.value);
               handleTyping(e.target.value);
             }}
-            onFocus={() => setShowEmojiPicker(false)}
+            onFocus={() => {
+              setShowEmojiPicker(false);
+              onInputFocus?.();
+            }}
           />
           <input
             type="file"

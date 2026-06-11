@@ -26,7 +26,7 @@ const AddFriend = () => {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
       <div className="p-4 border-b border-base-300">
         <form onSubmit={handleSearch} className="flex gap-2">
           <input
@@ -50,7 +50,7 @@ const AddFriend = () => {
         <p className="text-xs text-zinc-500 mt-2">Search by unique ID to send a friend request</p>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="chat-messages flex-1 min-h-0 overflow-y-auto p-4">
         {isSearching && (
           <div className="flex justify-center py-8">
             <span className="loading loading-spinner loading-md" />

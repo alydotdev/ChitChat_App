@@ -16,6 +16,7 @@ app.use(cors({
             "http://127.0.0.1:5173",
             "http://16.170.218.202:5173",
             "https://chit-chat-app-five.vercel.app", 
+            "https://app.kromk.store",
         ];
         
         // Allow requests with no origin (like mobile apps or curl requests)

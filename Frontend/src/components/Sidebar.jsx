@@ -40,7 +40,7 @@ const Sidebar = () => {
   if (isUsersLoading && activeTab === "contacts") return <SidebarSkeleton />;
 
   return (
-    <aside className="h-full w-full md:w-80 border-r border-base-300 flex flex-col transition-all duration-200">
+    <aside className="h-full min-h-0 w-full md:w-80 border-r border-base-300 flex flex-col overflow-hidden transition-all duration-200">
       <div className="border-b border-base-300 w-full">
         <div className="flex">
           {tabs.map((tab) => (
@@ -94,7 +94,7 @@ const Sidebar = () => {
             </div>
           </div>
 
-          <div className="overflow-y-auto w-full py-1 flex-1">
+          <div className="chat-messages overflow-y-auto w-full py-1 flex-1 min-h-0">
             {filteredUsers.map((user) =>
               user?._id ? (
                 <button
